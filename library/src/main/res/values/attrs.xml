@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <declare-styleable name="SwipeableLayout">
+        <attr name="frontView" format="reference" />
+        <attr name="backView" format="reference" />
+        <attr name="tabView" format="reference" />
+        <attr name="swipeThreshold" format="dimension" />
+        <attr name="peekSize" format="dimension" />
+        <attr name="grabSize" format="dimension" />
+        <attr name="android:layout_gravity" />
+        <attr name="direction" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+        </attr>
+    </declare-styleable>
+</resources>
