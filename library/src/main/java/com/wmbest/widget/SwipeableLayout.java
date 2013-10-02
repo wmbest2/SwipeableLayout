@@ -296,6 +296,7 @@ public class SwipeableLayout extends FrameLayout {
         }
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mWidth = getMeasuredWidth();
     }
 
     @Override
