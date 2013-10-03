@@ -6,6 +6,27 @@ A swipeable - auto resizing view group for android
 Usage
 ---
 
+build.gradle
+
+```groovy
+compile 'com.wmbest.widget:swipeable-layout:1.0.+@aar'
+```
+
+-- or --
+
+pom.xml
+
+```xml
+<dependency>
+  <groupId>com.wmbest.widget</groupId>
+  <artifactId>swipeable-layout</artifactId>
+  <version>1.0.+</version>
+  <type>aar</type>
+</dependency>
+```
+
+layout.xml
+
 ```xml
 <com.wmbest.widget.SwipeableLayout
     android:layout_width="match_parent"

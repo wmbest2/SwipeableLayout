@@ -10,11 +10,70 @@ dependencies {
 
 android {
     compileSdkVersion 18
-    buildToolsVersion "18.0.1"
+    buildToolsVersion "18.1"
 
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 18
+    }
+}
+
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+version = "1.0.1"
+group = "com.wmbest.widget"
+
+configurations {
+    archives {
+        extendsFrom configurations.default
+    }
+}
+
+signing {
+    required { has("release") && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    configuration = configurations.archives
+    repositories.mavenDeployer {
+        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+        repository(url: sonatypeRepo) {
+            authentication(userName: sonatypeUsername,
+                    password: sonatypePassword)
+        }
+
+        pom.project {
+            artifactId 'swipeable-layout'
+            name 'Android Swipeable Layout Library'
+            packaging 'aar'
+            description 'A auto-resizing swipeable layout'
+            url 'https://github.com/wmbest2/SwipeableLayout'
+
+            scm {
+                url 'scm:git@github.com:wmbest2/SwipeableLayout.git'
+                connection 'scm:git@github.com:wmbest2/SwipeableLayout.git'
+                developerConnection 'scm:git@github.com:wmbest2/SwipeableLayout.git'
+            }
+
+            licenses {
+                license {
+                    name 'GNU General Public License (GPL), Version 2.0'
+                    url 'http://www.gnu.org/licenses/gpl2.txt'
+                    distribution 'repo'
+                }
+            }
+
+            developers {
+                developer {
+                    id 'wmbest2'
+                    name 'William Best'
+                    email 'wmbest2@gmail.com'
+                }
+            }
+        }
     }
 }
 
