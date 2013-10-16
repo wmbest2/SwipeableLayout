@@ -30,6 +30,9 @@ public class SwipeableLayout extends FrameLayout {
     protected ViewGroup mFrontContainer;
     protected ViewGroup mBackContainer;
 
+    protected Bitmap mFrontCache;
+    protected Bitmap mBackCache;
+
     private int mFrontId = -1;
     private int mBackId  = -1;
     private int mTabId   = -1;
@@ -130,6 +133,19 @@ public class SwipeableLayout extends FrameLayout {
         mBackContainer.setVisibility(View.GONE);
         mFrontContainer.getLayoutParams().height  = LayoutParams.WRAP_CONTENT;
         mFrontContainer.setVisibility(View.VISIBLE);
+    }
+
+    public void clearDrawingCache() {
+        android.util.Log.d("SwipeableLayout", "CLEARING");
+        if (!mIsOpen && mFrontCache != null) {
+            mFrontCache.recycle();
+            mFrontCache = null;
+        }
+
+        if (mBackCache != null) {
+            mBackCache.recycle();
+            mBackCache = null;
+        }
     }
 
     private ViewGroup wrapChild(View aChild) {
@@ -310,6 +326,8 @@ public class SwipeableLayout extends FrameLayout {
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 mMotionGrabber.setTouchDown(x);
+                if (!mIsAnimating)
+                    clearDrawingCache();
                 break;
             case MotionEvent.ACTION_MOVE:
                 mFromIntercept = mMotionGrabber.handleInterceptMove(x) || super.onInterceptTouchEvent(aEvent);
@@ -360,21 +378,20 @@ public class SwipeableLayout extends FrameLayout {
     }
 
     private void fixContainerContents() {
-        fixForContainer(mFrontContainer);
-        fixForContainer(mBackContainer);
+        mFrontCache = fixForContainer(mFrontContainer, mFrontCache);
+        mBackCache = fixForContainer(mBackContainer, mBackCache);
     }
 
-    private void fixForContainer(ViewGroup aContainer) {
-        if (aContainer.getChildAt(0) instanceof ImageView) return;
-        if(aContainer.getChildAt(0).getVisibility() == View.GONE) return;
+    private Bitmap fixForContainer(ViewGroup aContainer, Bitmap aCache) {
+        if(aContainer.getChildAt(0).getVisibility() == View.GONE) return null;
 
-        aContainer.getChildAt(0).setDrawingCacheEnabled(true);
-        Bitmap dc = Bitmap.createBitmap(aContainer.getChildAt(0).getDrawingCache());
-        aContainer.getChildAt(0).setDrawingCacheEnabled(false);
+        if (aCache == null) {
+            aCache = generateCache(aContainer);
+        }
 
         ImageView cache = new ImageView(getContext());
         cache.setScaleType(ImageView.ScaleType.MATRIX);
-        cache.setImageBitmap(dc);
+        cache.setImageBitmap(aCache);
         cache.setTag("CACHE");
 
         aContainer.removeViewAt(0);
@@ -382,16 +399,34 @@ public class SwipeableLayout extends FrameLayout {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         params.gravity = mFrameGravity;
         aContainer.addView(cache, 0, params);
+
+        return aCache;
+    }
+
+    private Bitmap generateCache(ViewGroup aContainer) {
+        View view = aContainer.getChildAt(0);
+        int width = 0;
+        if (view.getMeasuredWidth() <= 0 || view.getMeasuredHeight() <= 0) {
+            int parentSpec = MeasureSpec.makeMeasureSpec(0,MeasureSpec.UNSPECIFIED);
+            aContainer.measure(parentSpec, parentSpec);
+        }
+        width = view.getMeasuredWidth();
+
+        int spec = MeasureSpec.makeMeasureSpec(0,MeasureSpec.UNSPECIFIED);
+        int widthspec = MeasureSpec.makeMeasureSpec(width,MeasureSpec.EXACTLY);
+        view.measure(widthspec,spec);
+        view.layout(0, 0, width, view.getMeasuredHeight());
+
+        Bitmap b = Bitmap.createBitmap(width, view.getHeight(), 
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(b);
+        view.draw(canvas);
+
+        return b;
     }
 
     private void resetForContainer(ViewGroup aContainer, View aChild) {
         if (aContainer.getChildAt(0).getTag() == null) return;
-
-        ImageView cache = (ImageView) aContainer.getChildAt(0);
-        if(cache.getDrawable() instanceof BitmapDrawable) {
-            Bitmap bitmap = ((BitmapDrawable) cache.getDrawable()).getBitmap();
-            bitmap.recycle();
-        }
 
         aContainer.removeViewAt(0);
         aContainer.addView(aChild, 0, aChild.getLayoutParams());
