@@ -21,8 +21,13 @@ android {
 apply plugin: 'maven'
 apply plugin: 'signing'
 
-version = "1.0.1"
+version = "1.0.4"
 group = "com.wmbest.widget"
+
+def deployRepo = sonatypeRepo
+
+/* Uncomment to deploy locally */
+//deployRepo = 'file://localhost/tmp/myRepo'
 
 configurations {
     archives {
@@ -40,7 +45,7 @@ uploadArchives {
     repositories.mavenDeployer {
         beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-        repository(url: sonatypeRepo) {
+        repository(url: deployRepo) {
             authentication(userName: sonatypeUsername,
                     password: sonatypePassword)
         }

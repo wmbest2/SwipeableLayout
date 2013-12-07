@@ -93,6 +93,10 @@ public class SwipeableLayout extends FrameLayout {
         return mFrontContainer;
     }
 
+    public View getBackView() {
+        return mBackContainer;
+    }
+
     public void saveInstanceState(Bundle outState){
         outState.putBoolean(ISOPEN, mIsOpen);
         outState.putInt(FRONTNAT, mFrontNaturalHeight);
@@ -136,7 +140,6 @@ public class SwipeableLayout extends FrameLayout {
     }
 
     public void clearDrawingCache() {
-        android.util.Log.d("SwipeableLayout", "CLEARING");
         if (!mIsOpen && mFrontCache != null) {
             mFrontCache.recycle();
             mFrontCache = null;
@@ -194,8 +197,6 @@ public class SwipeableLayout extends FrameLayout {
         mBackContainer.setVisibility(View.VISIBLE);
 
         int time = animate ? 300 : 0;
-
-        android.util.Log.d("SwipeableLayout", "HEIGHT: " + getLayoutParams().height);
 
         float x = ViewHelper.getX(mFrontContainer);
         float margin = mPeekSize - mWidth;
